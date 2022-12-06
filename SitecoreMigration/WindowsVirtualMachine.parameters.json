@@ -1,0 +1,18 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentParameters.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "adminUsername": { "value": "sitecoreadmin"},
+    "adminPassword": { "value": "Sitec0rep@$$w0rd" },
+    "sqlAdministratorLogin": { "value": "sitecoreAdmin" },
+    "sqlAdministratorLoginPassword": { "value": "SiteC0re@dminl0g!n" },
+    "dnsNameForPublicIP": { "value": "stcoremigrpubdn" },
+    "windowsOSVersion": { "value": "2012-R2-Datacenter" },
+    "oldSitecore": { "value": "Sitecore.old.8.1rev.160302.zip" },
+    "newSitecore": { "value": "Sitecore.new.8.2rev.170728.zip" },
+    "unicornPackage": { "value": "Unicorn.zip" },
+    "licenseFile": { "value": "license.xml" },
+    "unicornConfig": { "value": "Unicorn.config" },
+    "unicornLangPack": {"value": "Install-Cultures.zip"}
+  }
+}

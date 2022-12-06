@@ -1,0 +1,7 @@
+<Valve
+    className="org.apache.catalina.valves.RemoteIpValve"
+    remoteIpHeader="x-forwarded-for"
+    protocolHeader="x-forwarded-proto"
+    portHeader="x-forwarded-port"
+    internalProxies="127\.0\.0\.1"
+/>

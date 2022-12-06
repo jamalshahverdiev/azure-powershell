@@ -1,0 +1,10 @@
+## TeamCity build agent configuration file
+serverUrl=https\://localhost
+name=BuildName
+workDir=C\:\\BuildAgent\\work
+tempDir=C\:\\BuildAgent\\temp
+systemDir=C\:\\BuildAgent\\system
+authorizationToken=AuthTokenID
+env.TEAMCITY_JRE=C\:\\BuildAgent\\jre
+ownPort=AgentPort
+ownAddress=localhost

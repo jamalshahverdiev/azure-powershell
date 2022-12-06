@@ -1,0 +1,10 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<languages>
+  <language cultureCode="en-CL" cultureName="English (Chile)"/>
+  <language cultureCode="en-HK" cultureName="English (Hong Kong)"/>
+  <language cultureCode="en-SG" cultureName="English (Singapore)"/>
+  <language cultureCode="en-MM" cultureName="English (Myanmar)"/>
+  <language cultureCode="en-LK" cultureName="English (Sri Lanka)"/>
+  <language cultureCode="en-Second" cultureName="English Secondary"/>
+  <language cultureCode="en-US-Second" cultureName="English (United States) Secondary" baseCulture="en-US" baseRegion="en-US"/>
+</languages>

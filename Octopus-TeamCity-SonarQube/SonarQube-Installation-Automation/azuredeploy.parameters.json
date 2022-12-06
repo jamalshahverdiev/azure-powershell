@@ -1,0 +1,25 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentParameters.json#",
+    "contentVersion": "1.0.0.0",
+  "parameters": {
+    "location": { "value": "westeurope" },
+    "virtualMachineName": { "value": "SQserver" },
+    "virtualMachineSize": { "value": "Standard_A2" },
+    "adminUsername": { "value": "azureuser" },
+    "virtualNetworkName": { "value": "sqRGserver-vnet" },
+    "networkInterfaceName": { "value": "sqserver425" },
+    "networkSecurityGroupName": { "value": "SQserver-nsg" },
+    "networkDnsName": { "value": "sonarqubepublicdnsadi" },
+    "adminPublicKey": { "value": "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDXcpQNv7GM2rQmJtlu9YI2nt9zRpAcIg9c/bTopD5HPDPeOitOrWwuS08eLIKwcTe1Z3omfasMRVwIMcdBIHFS1UfOWB57lVZRKLDi4176j8q7KD/U/LDZmEfTzIbGhey485KeAFugmL6Ssu7IfWiIKRiO4S2eQmtovvnwtQShlQ5GZhRD8/m7Ujo9nfocXAsl34dnezyiJ3h+mAEIp1J6b2S3uko5iZn8zeqsdd7IC7GvFJLlXVo/t3zHCk3tYG4aLKgDxOOt7Hgp26aYUsn0Rl4nVZbhEMQ7VK/d3fwPHhAJ5lgTN2cMewnJNpkNtQeB06TVO9kl2TkAhANcFw0/" },
+    "diagnosticsStorageAccountName": { "value": "sqrgnewdiag875" },
+    "diagnosticsStorageAccountType": { "value": "Standard_LRS" },
+    "diagnosticsStorageAccountId": { "value": "Microsoft.Storage/storageAccounts/sqrgnewdiag875" },
+    "addressPrefix": { "value": "10.0.0.0/24" },
+    "subnetName": { "value": "default" },
+    "subnetPrefix": { "value": "10.0.0.0/24" },
+    "publicIpAddressName": { "value": "SQserver-ip" },
+    "publicIpAddressType": { "value": "Dynamic" },
+    "publicIpAddressSku": { "value": "Basic" },
+    "rgName": { "value": "dcom-ci-cd" }
+  }
+}

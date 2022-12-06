@@ -1,0 +1,523 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "teamCityNSG": {
+      "type": "string",
+      "defaultValue": "WebSrvNSG",
+      "metadata": {
+        "description": "Network Security Group for TeamCity"
+      }
+    },
+    "tcstraccountType": {
+      "type": "string",
+      "defaultValue": "Standard_LRS",
+      "allowedValues": [
+        "Standard_LRS",
+        "Standard_ZRS",
+        "Standard_GRS",
+        "Standard_RAGRS",
+        "Premium_LRS"
+      ]
+    },
+    "tcmssqlAdminLogin": {
+      "type": "string",
+      "minLength": 1
+    },
+    "tcmssqlAdminPass": {
+      "type": "securestring",
+      "metadata": {
+        "description": "MsSQL password for admin login"
+      }
+    },
+    "tcvmName": {
+      "type": "string",
+      "minLength": 1
+    },
+    "tcvmnameAdminUserName": {
+      "type": "string",
+      "minLength": 1
+    },
+    "tcvmnameAdminPass": {
+      "type": "securestring",
+      "metadata": {
+        "description": "Virtual machine password for admin account"
+      }
+    },
+    "tcvmnameWindowsOSVersion": {
+      "type": "string",
+      "defaultValue": "2012-R2-Datacenter",
+      "allowedValues": [
+        "2008-R2-SP1",
+        "2012-Datacenter",
+        "2012-R2-Datacenter",
+        "Windows-Server-Technical-Preview"
+      ]
+    },
+    "tcpublicipaddrDnsName": {
+      "type": "string",
+      "minLength": 1
+    },
+    "tcnewdbName": {
+      "type": "string",
+      "minLength": 1
+    },
+    "tcnewdbCollation": {
+      "type": "string",
+      "minLength": 1,
+      "defaultValue": "SQL_Latin1_General_CP1_CI_AS"
+    },
+    "tcnewdbEdition": {
+      "type": "string",
+      "defaultValue": "Basic",
+      "allowedValues": [
+        "Basic",
+        "Standard",
+        "Premium"
+      ]
+    },
+    "tcnewdbRequestedServiceObjectiveName": {
+      "type": "string",
+      "defaultValue": "Basic",
+      "allowedValues": [
+        "Basic",
+        "S0",
+        "S1",
+        "S2",
+        "P1",
+        "P2",
+        "P3"
+      ],
+      "metadata": {
+        "description": "Describes the performance level for Edition"
+      }
+    },
+    "mainScriptUrl": {
+      "type": "string",
+      "minLength": 10,
+      "metadata": {
+        "description": "Main script to call another scfript to install TeamCity."
+      }
+    },
+    "certFileUrl": {
+      "type": "string",
+      "minLength": 10,
+      "metadata": {
+        "description": "Cetificate file for the HTTPS."
+      }
+    },
+    "iisScriptUrl": {
+      "type": "string",
+      "minLength": 6,
+      "metadata": {
+        "description": "Script to install and configure IIS."
+      }
+    },
+    "commonScriptUrl": {
+      "type": "string",
+      "minLength": 10,
+      "metadata": {
+        "description": "Script to do common things."
+      }
+    },
+    "TeamCityScriptUrl": {
+      "type": "string",
+      "minLength": 10,
+      "metadata": {
+        "description": "Script to install and configure TeamCity."
+      }
+    },
+    "webConfigUrl": {
+      "type": "string",
+      "minLength": 10,
+      "metadata": {
+        "description": "Template file to configure IIS."
+      }
+    },
+    "serverXmlUrl": {
+      "type": "string",
+      "minLength": 10,
+      "metadata": {
+        "description": "Template file to configure Tomcat server.xml."
+      }
+    },
+    "buildPropertiesUrl": {
+      "type": "string",
+      "minLength": 10,
+      "metadata": {
+        "description": "TeamCity buildagent.prorperties template file."
+      }
+    },
+    "wrapperConfUrl": {
+      "type": "string",
+      "minLength": 10,
+      "metadata": {
+        "description": "TeamCity wrapper.conf template file."
+      }
+    },
+    "logonAsServiceUrl": {
+      "type": "string",
+      "minLength": 10,
+      "metadata": {
+        "description": "Logon As Service PowerShell script."
+      }
+    },
+    "subinAclMsiUrl": {
+      "type": "string",
+      "minLength": 10,
+      "metadata": {
+        "description": "SubinACL Msi package."
+      }
+    },
+    "_artifactsLocation": {
+      "type": "string",
+      "metadata": {
+        "description": "Auto-generated container in staging storage account to receive post-build staging folder upload"
+      }
+    },
+    "_artifactsLocationSasToken": {
+      "type": "securestring",
+      "metadata": {
+        "description": "Auto-generated token to access _artifactsLocation"
+      }
+    }
+  },
+  "variables": {
+    "tcmssqlName": "[concat('tcmssql', uniqueString(resourceGroup().id))]",
+    "tcstraccountName": "[concat('tcstracc', uniqueString(resourceGroup().id))]",
+    "tcvnetworkPrefix": "10.0.0.0/16",
+    "tcvnetworkSubnet1Name": "Subnet-1",
+    "tcvnetworkSubnet1Prefix": "10.0.0.0/24",
+    "tcvnetworkSubnet2Name": "Subnet-2",
+    "tcvnetworkSubnet2Prefix": "10.0.1.0/24",
+    "tcvmnameImagePublisher": "MicrosoftWindowsServer",
+    "tcvmnameImageOffer": "WindowsServer",
+    "tcvmnameOSDiskName": "tcvmnameOSDisk",
+    "tcvmnameVmSize": "Standard_D2_v2",
+    "tcvmnameVnetID": "[resourceId('Microsoft.Network/virtualNetworks', 'tcvnetwork')]",
+    "tcvmnameSubnetRef": "[concat(variables('tcvmnameVnetID'), '/subnets/', variables('tcvnetworkSubnet1Name'))]",
+    "tcvmnameStorageAccountContainerName": "vhds",
+    "tcvmnameNicName": "[concat(parameters('tcvmName'), 'NetworkInterface')]",
+    "tcpublicipaddrName": "tcpublicipaddr",
+    "tcdscArchiveFolder": "DSC",
+    "tcdscArchiveFileName": "tcdsc.zip",
+    "tc-scriptsScriptFolder": "Scripts",
+    "tc-scriptsScriptFileName": "Install.ps1",
+    "installerUri": "[concat(parameters('_artifactsLocation'), '/', variables('tc-scriptsScriptFolder'), '/', variables('tc-scriptsScriptFileName'), parameters('_artifactsLocationSasToken'))]"
+  },
+  "resources": [
+    {
+      "name": "[variables('tcmssqlName')]",
+      "type": "Microsoft.Sql/servers",
+      "location": "[resourceGroup().location]",
+      "apiVersion": "2014-04-01-preview",
+      "dependsOn": [ ],
+      "tags": {
+        "displayName": "tcmssql"
+      },
+      "properties": {
+        "administratorLogin": "[parameters('tcmssqlAdminLogin')]",
+        "administratorLoginPassword": "[parameters('tcmssqlAdminPass')]"
+      },
+      "resources": [
+        {
+          "name": "AllowAllWindowsAzureIps",
+          "type": "firewallrules",
+          "location": "[resourceGroup().location]",
+          "apiVersion": "2014-04-01-preview",
+          "dependsOn": [
+            "[resourceId('Microsoft.Sql/servers', variables('tcmssqlName'))]"
+          ],
+          "properties": {
+            "startIpAddress": "0.0.0.0",
+            "endIpAddress": "0.0.0.0"
+          }
+        },
+        {
+          "name": "[parameters('tcnewdbName')]",
+          "type": "databases",
+          "location": "[resourceGroup().location]",
+          "apiVersion": "2014-04-01-preview",
+          "dependsOn": [
+            "[resourceId('Microsoft.Sql/servers', variables('tcmssqlName'))]"
+          ],
+          "tags": {
+            "displayName": "tcnewdb"
+          },
+          "properties": {
+            "collation": "[parameters('tcnewdbCollation')]",
+            "edition": "[parameters('tcnewdbEdition')]",
+            "maxSizeBytes": "1073741824",
+            "requestedServiceObjectiveName": "[parameters('tcnewdbRequestedServiceObjectiveName')]"
+          }
+        }
+      ]
+    },
+    {
+      "name": "[variables('tcstraccountName')]",
+      "type": "Microsoft.Storage/storageAccounts",
+      "location": "[resourceGroup().location]",
+      "apiVersion": "2016-01-01",
+      "sku": {
+        "name": "[parameters('tcstraccountType')]"
+      },
+      "dependsOn": [ ],
+      "tags": {
+        "displayName": "tcstraccount"
+      },
+      "kind": "Storage"
+    },
+    {
+      "apiVersion": "2017-06-01",
+      "type": "Microsoft.Network/networkSecurityGroups",
+      "name": "[parameters('teamCityNSG')]",
+      "location": "[resourceGroup().location]",
+      "tags": {
+        "displayName": "NSG - Front End"
+      },
+      "properties": {
+        "securityRules": [
+          {
+            "name": "rdp-rule",
+            "properties": {
+              "description": "Deny RDP",
+              "protocol": "Tcp",
+              "sourcePortRange": "*",
+              "destinationPortRange": "3389",
+              "sourceAddressPrefix": "Internet",
+              "destinationAddressPrefix": "*",
+              "access": "Deny",
+              "priority": 100,
+              "direction": "Inbound"
+            }
+          },
+          {
+            "name": "webazsql-rule",
+            "properties": {
+              "description": "Allow WEB",
+              "protocol": "Tcp",
+              "sourcePortRange": "*",
+              "destinationPortRanges": [ "80","443","1433" ],
+              "sourceAddressPrefix": "Internet",
+              "destinationAddressPrefix": "*",
+              "access": "Allow",
+              "priority": 101,
+              "direction": "Inbound"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "tcvnetwork",
+      "type": "Microsoft.Network/virtualNetworks",
+      "location": "[resourceGroup().location]",
+      "apiVersion": "2016-03-30",
+      "dependsOn": [ 
+        "[concat('Microsoft.Network/networkSecurityGroups/', parameters('teamCityNSG'))]"        
+      ],
+      "tags": {
+        "displayName": "tcvnetwork"
+      },
+      "properties": {
+        "addressSpace": {
+          "addressPrefixes": [
+            "[variables('tcvnetworkPrefix')]"
+          ]
+        },
+        "subnets": [
+          {
+            "name": "[variables('tcvnetworkSubnet1Name')]",
+            "properties": {
+              "addressPrefix": "[variables('tcvnetworkSubnet1Prefix')]",
+              "networkSecurityGroup": {
+                "id": "[resourceId('Microsoft.Network/networkSecurityGroups', parameters('teamCityNSG'))]"
+              }
+            }
+          },
+          {
+            "name": "[variables('tcvnetworkSubnet2Name')]",
+            "properties": {
+              "addressPrefix": "[variables('tcvnetworkSubnet2Prefix')]",
+              "networkSecurityGroup": {
+                "id": "[resourceId('Microsoft.Network/networkSecurityGroups', parameters('teamCityNSG'))]"
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "[variables('tcvmnameNicName')]",
+      "type": "Microsoft.Network/networkInterfaces",
+      "location": "[resourceGroup().location]",
+      "apiVersion": "2016-03-30",
+      "dependsOn": [
+        "[resourceId('Microsoft.Network/virtualNetworks', 'tcvnetwork')]",
+        "[resourceId('Microsoft.Network/publicIPAddresses', variables('tcpublicipaddrName'))]"
+      ],
+      "tags": {
+        "displayName": "tcvmnameNic"
+      },
+      "properties": {
+        "ipConfigurations": [
+          {
+            "name": "ipconfig1",
+            "properties": {
+              "privateIPAllocationMethod": "Dynamic",
+              "subnet": {
+                "id": "[variables('tcvmnameSubnetRef')]"
+              },
+              "publicIPAddress": {
+                "id": "[resourceId('Microsoft.Network/publicIPAddresses', variables('tcpublicipaddrName'))]"
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "[parameters('tcvmName')]",
+      "type": "Microsoft.Compute/virtualMachines",
+      "location": "[resourceGroup().location]",
+      "apiVersion": "2015-06-15",
+      "dependsOn": [
+        "[resourceId('Microsoft.Sql/servers', variables('tcmssqlName'))]",
+        "[concat('Microsoft.Sql/servers/', variables('tcmssqlName'), '/databases/', parameters('tcnewdbName'))]",
+        "[resourceId('Microsoft.Storage/storageAccounts', variables('tcstraccountName'))]",
+        "[resourceId('Microsoft.Network/networkInterfaces', variables('tcvmnameNicName'))]"
+      ],
+      "tags": {
+        "displayName": "tcvmname"
+      },
+      "properties": {
+        "hardwareProfile": {
+          "vmSize": "[variables('tcvmnameVmSize')]"
+        },
+        "osProfile": {
+          "computerName": "[parameters('tcvmName')]",
+          "adminUsername": "[parameters('tcvmnameAdminUsername')]",
+          "adminPassword": "[parameters('tcvmnameAdminPass')]"
+        },
+        "storageProfile": {
+          "imageReference": {
+            "publisher": "[variables('tcvmnameImagePublisher')]",
+            "offer": "[variables('tcvmnameImageOffer')]",
+            "sku": "[parameters('tcvmnameWindowsOSVersion')]",
+            "version": "latest"
+          },
+          "osDisk": {
+            "name": "tcvmnameOSDisk",
+            "vhd": {
+              "uri": "[concat(reference(resourceId('Microsoft.Storage/storageAccounts', variables('tcstraccountName')), '2016-01-01').primaryEndpoints.blob, variables('tcvmnameStorageAccountContainerName'), '/', variables('tcvmnameOSDiskName'), '.vhd')]"
+            },
+            "caching": "ReadWrite",
+            "createOption": "FromImage"
+          }
+        },
+        "networkProfile": {
+          "networkInterfaces": [
+            {
+              "id": "[resourceId('Microsoft.Network/networkInterfaces', variables('tcvmnameNicName'))]"
+            }
+          ]
+        }
+      },
+      "resources": [
+        {
+          "name": "Microsoft.Powershell.DSC",
+          "type": "extensions",
+          "location": "[resourceGroup().location]",
+          "apiVersion": "2016-03-30",
+          "dependsOn": [
+            "[resourceId('Microsoft.Compute/virtualMachines', parameters('tcvmName'))]"
+          ],
+          "tags": {
+            "displayName": "tcdsc"
+          },
+          "properties": {
+            "publisher": "Microsoft.Powershell",
+            "type": "DSC",
+            "typeHandlerVersion": "2.9",
+            "autoUpgradeMinorVersion": true,
+            "settings": {
+              "configuration": {
+                "url": "[concat(parameters('_artifactsLocation'), '/', variables('tcdscArchiveFolder'), '/', variables('tcdscArchiveFileName'))]",
+                "script": "tcdsc.ps1",
+                "function": "Main"
+              },
+              "configurationArguments": {
+                "nodeName": "[parameters('tcvmName')]",
+                "mainScriptUrl": "[concat(parameters('_artifactsLocation'), '/', 'Scripts', '/', parameters('mainScriptUrl'), parameters('_artifactsLocationSasToken'))]",
+                "commonScriptUrl": "[concat(parameters('_artifactsLocation'), '/', 'Scripts', '/', 'Includes', '/', parameters('commonScriptUrl'), parameters('_artifactsLocationSasToken'))]",
+                "iisScriptUrl": "[concat(parameters('_artifactsLocation'), '/', 'Scripts', '/', 'Includes', '/', parameters('iisScriptUrl'), parameters('_artifactsLocationSasToken'))]",
+                "teamCityScriptUrl": "[concat(parameters('_artifactsLocation'), '/', 'Scripts', '/', 'Includes', '/', parameters('TeamCityScriptUrl'), parameters('_artifactsLocationSasToken'))]",
+                "certFileUrl": "[concat(parameters('_artifactsLocation'), '/', 'Scripts', '/', parameters('certFileUrl'), parameters('_artifactsLocationSasToken'))]",
+                "webConfigUrl": "[concat(parameters('_artifactsLocation'), '/', 'Scripts', '/', 'Temps', '/', parameters('webConfigUrl'), parameters('_artifactsLocationSasToken'))]",
+                "serverXmlUrl": "[concat(parameters('_artifactsLocation'), '/', 'Scripts', '/', 'Temps', '/', parameters('serverXmlUrl'), parameters('_artifactsLocationSasToken'))]",
+                "buildPropertiesUrl": "[concat(parameters('_artifactsLocation'), '/', 'Scripts', '/', 'Temps', '/', parameters('buildPropertiesUrl'), parameters('_artifactsLocationSasToken'))]",
+                "wrapperConfUrl": "[concat(parameters('_artifactsLocation'), '/', 'Scripts', '/', 'Temps', '/', parameters('wrapperConfUrl'), parameters('_artifactsLocationSasToken'))]",
+                "logonAsServiceUrl": "[concat(parameters('_artifactsLocation'), '/', 'Scripts', '/', 'Includes', '/', parameters('logonAsServiceUrl'), parameters('_artifactsLocationSasToken'))]",
+                "subinAclMsiUrl": "[concat(parameters('_artifactsLocation'), '/', 'Scripts', '/', 'Temps', '/', parameters('subinAclMsiUrl'), parameters('_artifactsLocationSasToken'))]"
+              }
+            },
+            "protectedSettings": {
+              "configurationUrlSasToken": "[parameters('_artifactsLocationSasToken')]"
+            }
+          }
+        },
+        {
+          "name": "tc-scripts",
+          "type": "extensions",
+          "location": "[resourceGroup().location]",
+          "apiVersion": "2016-03-30",
+          "dependsOn": [
+            "[resourceId('Microsoft.Compute/virtualMachines', parameters('tcvmName'))]",
+            "[concat('Microsoft.Compute/virtualMachines/', parameters('tcvmName'), '/extensions/Microsoft.Powershell.DSC')]",
+            "[concat('Microsoft.Sql/servers/', variables('tcmssqlName'), '/databases/', parameters('tcnewdbName'))]"
+          ],
+          "tags": {
+            "displayName": "tc-scripts"
+          },
+          "properties": {
+            "publisher": "Microsoft.Compute",
+            "type": "CustomScriptExtension",
+            "typeHandlerVersion": "1.7",
+            "autoUpgradeMinorVersion": true,
+            "settings": {
+              "fileUris": [
+                "[variables('installerUri')]"
+              ],
+              "commandToExecute": "[concat('powershell -ExecutionPolicy Unrestricted -File ', variables('tc-scriptsScriptFolder'), '/', variables('tc-scriptsScriptFileName'), ' -sqlServerName ', reference(variables('tcmssqlName')).fullyQualifiedDomainName, ' -sqlDBName ', parameters('tcnewdbName'), ' -sqlUsername ', parameters('tcmssqlAdminLogin'), ' -sqlPasswd ', parameters('tcmssqlAdminPass'), ' -vmDnsName ', reference(variables('tcpublicipaddrName')).dnsSettings.fqdn)]"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "[variables('tcpublicipaddrName')]",
+      "type": "Microsoft.Network/publicIPAddresses",
+      "location": "[resourceGroup().location]",
+      "apiVersion": "2016-03-30",
+      "dependsOn": [ ],
+      "tags": {
+        "displayName": "tcpublicipaddr"
+      },
+      "properties": {
+        "publicIPAllocationMethod": "Dynamic",
+        "dnsSettings": {
+          "domainNameLabel": "[parameters('tcpublicipaddrDnsName')]"
+        }
+      }
+    }],
+  "outputs": {
+    "teamcityServerName": {
+      "type": "string",
+      "value": "[reference(variables('tcpublicipaddrName')).dnsSettings.fqdn]"
+    },
+    "sqlServerName": {
+      "type": "string",
+      "value": "[reference(concat('Microsoft.Sql/servers/', variables('tcmssqlName'))).fullyQualifiedDomainName]"
+    }
+  }
+}

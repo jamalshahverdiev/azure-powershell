@@ -1,0 +1,1001 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "_artifactsLocation": {
+      "type": "string",
+      "metadata": {
+        "description": "Auto-generated container in staging storage account to receive post-build staging folder upload"
+      }
+    },
+    "_artifactsLocationSasToken": {
+      "type": "securestring",
+      "metadata": {
+        "description": "Auto-generated token to access _artifactsLocation"
+      }
+    },
+    "scriptUrl": {
+      "type": "string",
+      "minLength": 10,
+      "metadata": {
+        "description": "Script for Octopus API and Tentacle Agent."
+      }
+    },
+    "certScriptUrl": {
+      "type": "string",
+      "minLength": 10,
+      "metadata": {
+        "description": "Certificate Script for Octopus HTTPS configure."
+      }
+    },
+    "certUrl": {
+      "type": "string",
+      "minLength": 10,
+      "metadata": {
+        "description": "Certificate file to import to the server."
+      }
+    },
+    "vmAdminUsername": {
+      "type": "string",
+      "defaultValue": "octoadmin",
+      "metadata": {
+        "description": "Admin username for the Octopus Deploy Virtual Machine."
+      }
+    },
+    "vmAdminPassword": {
+      "type": "securestring",
+      "metadata": {
+        "description": "Admin password for the Octopus Deploy Virtual Machine."
+      }
+    },
+    "networkDnsName": {
+      "type": "string",
+      "metadata": {
+        "description": "Unique DNS Name used to access the Octopus Deploy server via HTTP or RDP."
+      }
+    },
+    "sqlServerName": {
+      "type": "string",
+      "metadata": {
+        "description": "Unique DNS Name for the SQL DB Server that will hold the Octopus Deploy data."
+      }
+    },
+    "sqlAdminUsername": {
+      "type": "string",
+      "defaultValue": "sqladmin",
+      "metadata": {
+        "description": "Admin username for the Octopus Deploy SQL DB Server."
+      }
+    },
+    "sqlAdminPassword": {
+      "type": "securestring",
+      "metadata": {
+        "description": "Admin password for the Octopus Deploy SQL DB Server."
+      }
+    },
+    "licenseFullName": {
+      "type": "string",
+      "metadata": {
+        "description": "Octopus Deploy Trial license - provide Full Name."
+      }
+    },
+    "licenseOrganisationName": {
+      "type": "string",
+      "metadata": {
+        "description": "Octopus Deploy Trial license - provide Organisation Name."
+      }
+    },
+    "licenseEmailAddress": {
+      "type": "string",
+      "metadata": {
+        "description": "Octopus Deploy Trial license - provide Email Address."
+      }
+    },
+    "octopusAdminUsername": {
+      "type": "string",
+      "metadata": {
+        "description": "Admin username for the Octopus Deploy web application."
+      }
+    },
+    "octopusAdminPassword": {
+      "type": "securestring",
+      "metadata": {
+        "description": "Admin password for the Octopus Deploy web application."
+      }
+    },
+    "teamCityNSG": {
+      "type": "string",
+      "defaultValue": "WebSrvNSG",
+      "metadata": {
+        "description": "Network Security Group for TeamCity"
+      }
+    },
+    "tcstraccountType": {
+      "type": "string",
+      "defaultValue": "Standard_LRS",
+      "allowedValues": [
+        "Standard_LRS",
+        "Standard_ZRS",
+        "Standard_GRS",
+        "Standard_RAGRS",
+        "Premium_LRS"
+      ]
+    },
+    "tcvmName": {
+      "type": "string",
+      "minLength": 1
+    },
+    "tcvmnameAdminUserName": {
+      "type": "string",
+      "minLength": 1
+    },
+    "tcvmnameAdminPass": {
+      "type": "securestring",
+      "metadata": {
+        "description": "Virtual machine password for admin account"
+      }
+    },
+    "tcvmnameWindowsOSVersion": {
+      "type": "string",
+      "defaultValue": "2012-R2-Datacenter",
+      "allowedValues": [
+        "2008-R2-SP1",
+        "2012-Datacenter",
+        "2012-R2-Datacenter",
+        "Windows-Server-Technical-Preview"
+      ]
+    },
+    "tcpublicipaddrDnsName": {
+      "type": "string",
+      "minLength": 1
+    },
+    "tcnewdbName": {
+      "type": "string",
+      "minLength": 1
+    },
+    "tcnewdbCollation": {
+      "type": "string",
+      "minLength": 1,
+      "defaultValue": "SQL_Latin1_General_CP1_CI_AS"
+    },
+    "tcnewdbEdition": {
+      "type": "string",
+      "defaultValue": "Basic",
+      "allowedValues": [
+        "Basic",
+        "Standard",
+        "Premium"
+      ]
+    },
+    "tcnewdbRequestedServiceObjectiveName": {
+      "type": "string",
+      "defaultValue": "Basic",
+      "allowedValues": [
+        "Basic",
+        "S0",
+        "S1",
+        "S2",
+        "P1",
+        "P2",
+        "P3"
+      ],
+      "metadata": {
+        "description": "Describes the performance level for Edition"
+      }
+    },
+    "mainScriptUrl": {
+      "type": "string",
+      "minLength": 10,
+      "metadata": {
+        "description": "Main script to call another scfript to install TeamCity."
+      }
+    },
+    "certFileUrl": {
+      "type": "string",
+      "minLength": 10,
+      "metadata": {
+        "description": "Cetificate file for the HTTPS."
+      }
+    },
+    "iisScriptUrl": {
+      "type": "string",
+      "minLength": 6,
+      "metadata": {
+        "description": "Script to install and configure IIS."
+      }
+    },
+    "commonScriptUrl": {
+      "type": "string",
+      "minLength": 10,
+      "metadata": {
+        "description": "Script to do common things."
+      }
+    },
+    "TeamCityScriptUrl": {
+      "type": "string",
+      "minLength": 10,
+      "metadata": {
+        "description": "Script to install and configure TeamCity."
+      }
+    },
+    "webConfigUrl": {
+      "type": "string",
+      "minLength": 10,
+      "metadata": {
+        "description": "Template file to configure IIS."
+      }
+    },
+    "serverXmlUrl": {
+      "type": "string",
+      "minLength": 10,
+      "metadata": {
+        "description": "Template file to configure Tomcat server.xml."
+      }
+    },
+    "buildPropertiesUrl": {
+      "type": "string",
+      "minLength": 10,
+      "metadata": {
+        "description": "TeamCity buildagent.prorperties template file."
+      }
+    },
+    "wrapperConfUrl": {
+      "type": "string",
+      "minLength": 10,
+      "metadata": {
+        "description": "TeamCity wrapper.conf template file."
+      }
+    },
+    "logonAsServiceUrl": {
+      "type": "string",
+      "minLength": 10,
+      "metadata": {
+        "description": "Logon As Service PowerShell script."
+      }
+    },
+    "subinAclMsiUrl": {
+      "type": "string",
+      "minLength": 10,
+      "metadata": {
+        "description": "SubinACL Msi package."
+      }
+    },
+    "diagnosticsStorageAccountName": {
+      "type": "string"
+    },
+    "diagnosticsStorageAccountType": {
+      "type": "string"
+    },
+    "networkInterfaceName": {
+      "type": "string"
+    },
+    "publicIpAddressName": {
+      "type": "string"
+    },
+    "virtualMachineName": {
+      "type": "string"
+    },
+    "adminUsername": {
+      "type": "string"
+    },
+    "virtualMachineSize": {
+      "type": "string"
+    },
+    "adminPublicKey": {
+      "type": "string"
+    },
+    "publicIpAddressType": {
+      "type": "string"
+    },
+    "sonarDnsName": {
+      "type": "string",
+      "metadata": {
+        "description": "Unique DNS Name used to access the Octopus Deploy server via HTTP or RDP."
+      }
+    },
+    "publicIpAddressSku": {
+      "type": "string"
+    }
+  },
+  "variables": {
+    "storageAccountName": "[concat(uniquestring(resourceGroup().id),'storage')]",
+    "vmImagePublisher": "MicrosoftWindowsServer",
+    "vmImageOffer": "WindowsServer",
+    "vmOSDiskName": "osdiskforwindowssimple",
+    "vmWindowsOSVersion": "2012-R2-Datacenter",
+    "vmStorageAccountType": "Standard_LRS",
+    "vmStorageAccountContainerName": "vhds",
+    "vmName": "OctopusDeploy",
+    "vmSize": "Standard_D2",
+    "networkNicName": "OctopusDeployNIC",
+    "networkAddressPrefix": "10.0.0.0/16",
+    "networkSubnetName": "OctopusDeploySubnet",
+    "networkSubnetPrefix": "10.0.0.0/24",
+    "networkPublicIPAddressName": "OctopusDeployPublicIP",
+    "networkPublicIPAddressType": "Dynamic",
+    "networkVNetName": "OctopusDeployVNET",
+    "networkVNetID": "[resourceId('Microsoft.Network/virtualNetworks',variables('networkVNetName'))]",
+    "networkSubnetRef": "[concat(variables('networkVNetID'),'/subnets/',variables('networkSubnetName'))]",
+    "sqlDbName": "OctopusDeploy",
+    "sqlDbEdition": "Standard",
+    "sqlDbCollation": "SQL_Latin1_General_CP1_CI_AS",
+    "sqlDbMaxSizeBytes": "268435456000",
+    "sqldbEditionPerformanceLevel": "1B1EBD4D-D903-4BAA-97F9-4EA675F5E928",
+    "scriptsFolder": "Scripts",
+    "octopusScriptFile": "installoctopusdeploy.ps1",
+    "octoinstallerUri": "[concat(parameters('_artifactsLocation'), '/', variables('scriptsFolder'), '/', variables('octopusScriptFile'), parameters('_artifactsLocationSasToken'))]",
+    "agentDNSlink": "[concat('http://', parameters('networkDnsName'), '.', resourceGroup().location, '.cloudapp.azure.com')]",
+    "sqlDbConnectionString": "[concat('Data Source=tcp:', parameters('sqlServerName'), '.database.windows.net,1433;Database=', variables('sqlDbName'), ';User Id=', parameters('sqlAdminUsername'), '@', parameters('sqlServerName'), ';Password=', parameters('sqlAdminPassword'), ';Encrypt=True;TrustServerCertificate=False;Connection Timeout=30;')]",
+    "installerCommand": "[concat('powershell.exe -noninteractive -ExecutionPolicy Bypass',' -File .\\Scripts\\installoctopusdeploy.ps1 ', base64(variables('sqlDbConnectionString')), ' ', base64(parameters('licenseFullName')), ' ', base64(parameters('licenseOrganisationName')), ' ', base64(parameters('licenseEmailAddress')), ' ', base64(parameters('octopusAdminUsername')), ' ', base64(parameters('octopusAdminPassword')), ' -OctopusURI ', variables('agentDNSlink'), ' -OctopusUsername ', parameters('octopusAdminUsername'), ' -OctopusPassword ', parameters('octopusAdminPassword'), ' 2>&1 > D:\\Install-OctopusDeploy.ps1.log ')]",
+    "Copy-ScriptsArchiveFolder": "DSC",
+    "Copy-ScriptsArchiveFileName": "Copy-Scripts.zip",
+    "tcstraccountName": "[concat('tcstracc', uniqueString(resourceGroup().id))]",
+    "tcvmnameImagePublisher": "MicrosoftWindowsServer",
+    "tcvmnameImageOffer": "WindowsServer",
+    "tcvmnameOSDiskName": "tcvmnameOSDisk",
+    "tcvmnameVmSize": "Standard_D2_v2",
+    "tcvmnameStorageAccountContainerName": "vhds",
+    "tcvmnameNicName": "[concat(parameters('tcvmName'), 'NetworkInterface')]",
+    "tcpublicipaddrName": "tcpublicipaddr",
+    "tcdscArchiveFolder": "DSC",
+    "tcdscArchiveFileName": "tcdsc.zip",
+    "tc-scriptsScriptFolder": "Scripts",
+    "tc-scriptsScriptFileName": "Install.ps1",
+    "tcinstallerUri": "[concat(parameters('_artifactsLocation'), '/', variables('tc-scriptsScriptFolder'), '/', variables('tc-scriptsScriptFileName'), parameters('_artifactsLocationSasToken'))]"
+  },
+  "resources": [
+    {
+      "apiVersion": "2015-05-01-preview",
+      "type": "Microsoft.Storage/storageAccounts",
+      "name": "[variables('storageAccountName')]",
+      "location": "[resourceGroup().location]",
+      "tags": {
+        "env": "trial",
+        "vendor": "Octopus Deploy"
+      },
+      "properties": {
+        "accountType": "[variables('vmStorageAccountType')]"
+      }
+    },
+    {
+      "name": "[variables('tcstraccountName')]",
+      "type": "Microsoft.Storage/storageAccounts",
+      "location": "[resourceGroup().location]",
+      "apiVersion": "2016-01-01",
+      "sku": {
+        "name": "[parameters('tcstraccountType')]"
+      },
+      "dependsOn": [ ],
+      "tags": {
+        "displayName": "tcstraccount"
+      },
+      "kind": "Storage"
+    },
+    {
+      "name": "[parameters('diagnosticsStorageAccountName')]",
+      "type": "Microsoft.Storage/storageAccounts",
+      "apiVersion": "2015-06-15",
+      "location": "[resourceGroup().location]",
+      "properties": {
+          "accountType": "[parameters('diagnosticsStorageAccountType')]"
+      }
+    },
+    {
+      "apiVersion": "2015-05-01-preview",
+      "type": "Microsoft.Network/publicIPAddresses",
+      "name": "[variables('networkPublicIPAddressName')]",
+      "location": "[resourceGroup().location]",
+      "tags": {
+        "env": "trial",
+        "vendor": "Octopus Deploy"
+      },
+      "properties": {
+        "publicIPAllocationMethod": "[variables('networkPublicIPAddressType')]",
+        "dnsSettings": {
+          "domainNameLabel": "[parameters('networkDnsName')]"
+        }
+      }
+    },
+    {
+      "name": "[variables('tcpublicipaddrName')]",
+      "type": "Microsoft.Network/publicIPAddresses",
+      "location": "[resourceGroup().location]",
+      "apiVersion": "2016-03-30",
+      "dependsOn": [ ],
+      "tags": {
+        "displayName": "tcpublicipaddr"
+      },
+      "properties": {
+        "publicIPAllocationMethod": "Dynamic",
+        "dnsSettings": {
+          "domainNameLabel": "[parameters('tcpublicipaddrDnsName')]"
+        }
+      }
+    },
+    {
+      "name": "[parameters('publicIpAddressName')]",
+      "type": "Microsoft.Network/publicIPAddresses",
+      "apiVersion": "2017-08-01",
+      "location": "[resourceGroup().location]",
+      "properties": {
+        "publicIpAllocationMethod": "[parameters('publicIpAddressType')]",
+        "dnsSettings": {
+          "domainNameLabel": "[parameters('sonarDnsName')]"
+        }
+      },
+      "sku": {
+          "name": "[parameters('publicIpAddressSku')]"
+      }
+    },
+    {
+      "apiVersion": "2017-06-01",
+      "type": "Microsoft.Network/networkSecurityGroups",
+      "name": "[parameters('teamCityNSG')]",
+      "location": "[resourceGroup().location]",
+      "tags": {
+        "displayName": "NSG - Front End"
+      },
+      "properties": {
+        "securityRules": [
+          {
+            "name": "rdp-rule",
+            "properties": {
+              "description": "Deny RDP",
+              "protocol": "Tcp",
+              "sourcePortRange": "*",
+              "destinationPortRange": "3389",
+              "sourceAddressPrefix": "Internet",
+              "destinationAddressPrefix": "*",
+              "access": "Deny",
+              "priority": 100,
+              "direction": "Inbound"
+            }
+          },
+          {
+            "name": "webazsql-rule",
+            "properties": {
+              "description": "Allow WEB",
+              "protocol": "Tcp",
+              "sourcePortRange": "*",
+              "destinationPortRanges": [ "80","443","1433" ],
+              "sourceAddressPrefix": "Internet",
+              "destinationAddressPrefix": "*",
+              "access": "Allow",
+              "priority": 101,
+              "direction": "Inbound"
+            }
+          },
+          {
+            "name": "HTTP",
+            "properties": {
+                "priority": 1010,
+                "protocol": "TCP",
+                "access": "Allow",
+                "direction": "Inbound",
+                "sourceAddressPrefix": "*",
+                "sourcePortRange": "*",
+                "destinationAddressPrefix": "*",
+                "destinationPortRange": "80"
+            }
+        },
+        {
+            "name": "HTTPS",
+            "properties": {
+                "priority": 1020,
+                "protocol": "TCP",
+                "access": "Allow",
+                "direction": "Inbound",
+                "sourceAddressPrefix": "*",
+                "sourcePortRange": "*",
+                "destinationAddressPrefix": "*",
+                "destinationPortRange": "443"
+            }
+        },
+        {
+            "name": "default-allow-ssh",
+            "properties": {
+                "priority": 1030,
+                "protocol": "TCP",
+                "access": "Allow",
+                "direction": "Inbound",
+                "sourceAddressPrefix": "*",
+                "sourcePortRange": "*",
+                "destinationAddressPrefix": "*",
+                "destinationPortRange": "22"
+            }
+        }
+        ]
+      }
+    },
+    {
+      "apiVersion": "2015-05-01-preview",
+      "type": "Microsoft.Network/virtualNetworks",
+      "name": "[variables('networkVNetName')]",
+      "location": "[resourceGroup().location]",
+      "tags": {
+        "env": "trial",
+        "vendor": "Octopus Deploy"
+      },
+      "properties": {
+        "addressSpace": {
+          "addressPrefixes": [
+            "[variables('networkAddressPrefix')]"
+          ]
+        },
+        "subnets": [
+          {
+            "name": "[variables('networkSubnetName')]",
+            "properties": {
+              "addressPrefix": "[variables('networkSubnetPrefix')]"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "apiVersion": "2015-05-01-preview",
+      "type": "Microsoft.Network/networkInterfaces",
+      "name": "[variables('networkNicName')]",
+      "location": "[resourceGroup().location]",
+      "tags": {
+        "env": "trial",
+        "vendor": "Octopus Deploy"
+      },
+      "dependsOn": [
+        "[concat('Microsoft.Network/publicIPAddresses/', variables('networkPublicIPAddressName'))]",
+        "[concat('Microsoft.Network/virtualNetworks/', variables('networkVNetName'))]"
+      ],
+      "properties": {
+        "ipConfigurations": [
+          {
+            "name": "ipconfig1",
+            "properties": {
+              "privateIPAllocationMethod": "Dynamic",
+              "publicIPAddress": {
+                "id": "[resourceId('Microsoft.Network/publicIPAddresses', variables('networkPublicIPAddressName'))]"
+              },
+              "subnet": {
+                "id": "[variables('networkSubnetRef')]"
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "[variables('tcvmnameNicName')]",
+      "type": "Microsoft.Network/networkInterfaces",
+      "location": "[resourceGroup().location]",
+      "apiVersion": "2016-03-30",
+      "dependsOn": [
+        "[resourceId('Microsoft.Network/virtualNetworks', variables('networkVNetName'))]",
+        "[resourceId('Microsoft.Network/publicIPAddresses', variables('tcpublicipaddrName'))]"
+      ],
+      "tags": {
+        "displayName": "tcvmnameNic"
+      },
+      "properties": {
+        "ipConfigurations": [
+          {
+            "name": "ipconfig1",
+            "properties": {
+              "privateIPAllocationMethod": "Dynamic",
+              "subnet": {
+                "id": "[variables('networkSubnetRef')]"
+              },
+              "publicIPAddress": {
+                "id": "[resourceId('Microsoft.Network/publicIPAddresses', variables('tcpublicipaddrName'))]"
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "[parameters('networkInterfaceName')]",
+      "type": "Microsoft.Network/networkInterfaces",
+      "apiVersion": "2016-09-01",
+      "location": "[resourceGroup().location]",
+      "dependsOn": [
+          "[concat('Microsoft.Network/virtualNetworks/', variables('networkVNetName'))]",
+          "[concat('Microsoft.Network/publicIpAddresses/', parameters('publicIpAddressName'))]",
+          "[concat('Microsoft.Network/networkSecurityGroups/', parameters('teamCityNSG'))]"
+      ],
+      "properties": {
+          "ipConfigurations": [
+              {
+                  "name": "ipconfig1",
+                  "properties": {
+                      "subnet": {
+                          "id": "[variables('networkSubnetRef')]"
+                      },
+                      "privateIPAllocationMethod": "Dynamic",
+                      "publicIpAddress": {
+                          "id": "[resourceId('Microsoft.Network/publicIpAddresses', parameters('publicIpAddressName'))]"
+                      }
+                  }
+              }
+          ],
+          "networkSecurityGroup": {
+              "id": "[resourceId('Microsoft.Network/networkSecurityGroups', parameters('teamCityNSG'))]"
+          }
+      }
+    },
+    {
+      "apiVersion": "2015-05-01-preview",
+      "type": "Microsoft.Compute/virtualMachines",
+      "name": "[variables('vmName')]",
+      "location": "[resourceGroup().location]",
+      "tags": {
+        "env": "trial",
+        "vendor": "Octopus Deploy"
+      },
+      "dependsOn": [
+        "[concat('Microsoft.Storage/storageAccounts/', variables('storageAccountName'))]",
+        "[concat('Microsoft.Network/networkInterfaces/', variables('networkNicName'))]"
+      ],
+      "properties": {
+        "hardwareProfile": {
+          "vmSize": "[variables('vmSize')]"
+        },
+        "osProfile": {
+          "computerName": "[variables('vmName')]",
+          "adminUsername": "[parameters('vmAdminUsername')]",
+          "adminPassword": "[parameters('vmAdminPassword')]"
+        },
+        "storageProfile": {
+          "imageReference": {
+            "publisher": "[variables('vmImagePublisher')]",
+            "offer": "[variables('vmImageOffer')]",
+            "sku": "[variables('vmWindowsOSVersion')]",
+            "version": "latest"
+          },
+          "osDisk": {
+            "name": "osdisk",
+            "vhd": {
+              "uri": "[concat(reference(concat('Microsoft.Storage/storageAccounts/', variables('storageAccountName')), providers('Microsoft.Storage', 'storageAccounts').apiVersions[0]).primaryEndpoints.blob,variables('vmStorageAccountContainerName'),'/',variables('vmOSDiskName'),'.vhd')]"
+            },
+            "caching": "ReadWrite",
+            "createOption": "FromImage"
+          }
+        },
+        "networkProfile": {
+          "networkInterfaces": [
+            {
+              "id": "[resourceId('Microsoft.Network/networkInterfaces',variables('networkNicName'))]"
+            }
+          ]
+        }
+      },
+      "resources": [
+        {
+          "name": "Microsoft.Powershell.DSC",
+          "type": "extensions",
+          "location": "[resourceGroup().location]",
+          "apiVersion": "2016-03-30",
+          "dependsOn": [
+            "[resourceId('Microsoft.Compute/virtualMachines', variables('vmName'))]"
+          ],
+          "tags": {
+            "displayName": "Copy-Scripts"
+          },
+          "properties": {
+            "publisher": "Microsoft.Powershell",
+            "type": "DSC",
+            "typeHandlerVersion": "2.9",
+            "autoUpgradeMinorVersion": true,
+            "settings": {
+              "configuration": {
+                "url": "[concat(parameters('_artifactsLocation'), '/', variables('Copy-ScriptsArchiveFolder'), '/', variables('Copy-ScriptsArchiveFileName'))]",
+                "script": "Copy-Scripts.ps1",
+                "function": "Main"
+              },
+              "configurationArguments": {
+                "nodeName": "[variables('vmName')]",
+                "scriptUrl": "[concat(parameters('_artifactsLocation'), '/', 'Scripts', '/', parameters('scriptUrl'), parameters('_artifactsLocationSasToken'))]",
+                "certScriptUrl": "[concat(parameters('_artifactsLocation'), '/', 'Scripts', '/', parameters('certScriptUrl'), parameters('_artifactsLocationSasToken'))]",
+                "certUrl": "[concat(parameters('_artifactsLocation'), '/', 'Scripts', '/', parameters('certUrl'), parameters('_artifactsLocationSasToken'))]"
+              }
+            },
+            "protectedSettings": {
+              "configurationUrlSasToken": "[parameters('_artifactsLocationSasToken')]"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "type": "Microsoft.Compute/virtualMachines/extensions",
+      "name": "[concat(variables('vmName'), '/OctopusDeployInstaller')]",
+      "apiVersion": "2017-03-30",
+      "location": "[resourceGroup().location]",
+      "dependsOn": [
+        "[concat('Microsoft.Compute/virtualMachines/', variables('vmName'))]",
+        "[concat('Microsoft.Compute/virtualMachines/', variables('vmName'), '/extensions/Microsoft.Powershell.DSC')]",
+        "[concat('Microsoft.Sql/servers/', parameters('sqlServerName'), '/databases/', variables('sqlDbName'))]"
+      ],
+      "properties": {
+        "publisher": "Microsoft.Compute",
+        "type": "CustomScriptExtension",
+        "typeHandlerVersion": "1.7",
+        "autoUpgradeMinorVersion": "true",
+        "settings": {
+          "fileUris": [
+            "[variables('octoinstallerUri')]"
+          ],
+          "commandToExecute": "[variables('installerCommand')]"
+        }
+      }
+    },
+    {
+      "name": "[parameters('tcvmName')]",
+      "type": "Microsoft.Compute/virtualMachines",
+      "location": "[resourceGroup().location]",
+      "apiVersion": "2015-06-15",
+      "dependsOn": [
+        "[resourceId('Microsoft.Sql/servers', parameters('sqlServerName'))]",
+        "[concat('Microsoft.Sql/servers/', parameters('sqlServerName'), '/databases/', parameters('tcnewdbName'))]",
+        "[resourceId('Microsoft.Storage/storageAccounts', variables('tcstraccountName'))]",
+        "[resourceId('Microsoft.Network/networkInterfaces', variables('tcvmnameNicName'))]"
+      ],
+      "tags": {
+        "displayName": "tcvmname"
+      },
+      "properties": {
+        "hardwareProfile": {
+          "vmSize": "[variables('tcvmnameVmSize')]"
+        },
+        "osProfile": {
+          "computerName": "[parameters('tcvmName')]",
+          "adminUsername": "[parameters('tcvmnameAdminUsername')]",
+          "adminPassword": "[parameters('tcvmnameAdminPass')]"
+        },
+        "storageProfile": {
+          "imageReference": {
+            "publisher": "[variables('tcvmnameImagePublisher')]",
+            "offer": "[variables('tcvmnameImageOffer')]",
+            "sku": "[parameters('tcvmnameWindowsOSVersion')]",
+            "version": "latest"
+          },
+          "osDisk": {
+            "name": "tcvmnameOSDisk",
+            "vhd": {
+              "uri": "[concat(reference(resourceId('Microsoft.Storage/storageAccounts', variables('tcstraccountName')), '2016-01-01').primaryEndpoints.blob, variables('tcvmnameStorageAccountContainerName'), '/', variables('tcvmnameOSDiskName'), '.vhd')]"
+            },
+            "caching": "ReadWrite",
+            "createOption": "FromImage"
+          }
+        },
+        "networkProfile": {
+          "networkInterfaces": [
+            {
+              "id": "[resourceId('Microsoft.Network/networkInterfaces', variables('tcvmnameNicName'))]"
+            }
+          ]
+        }
+      },
+      "resources": [
+        {
+          "name": "Microsoft.Powershell.DSC",
+          "type": "extensions",
+          "location": "[resourceGroup().location]",
+          "apiVersion": "2016-03-30",
+          "dependsOn": [
+            "[resourceId('Microsoft.Compute/virtualMachines', parameters('tcvmName'))]"
+          ],
+          "tags": {
+            "displayName": "tcdsc"
+          },
+          "properties": {
+            "publisher": "Microsoft.Powershell",
+            "type": "DSC",
+            "typeHandlerVersion": "2.9",
+            "autoUpgradeMinorVersion": true,
+            "settings": {
+              "configuration": {
+                "url": "[concat(parameters('_artifactsLocation'), '/', variables('tcdscArchiveFolder'), '/', variables('tcdscArchiveFileName'))]",
+                "script": "tcdsc.ps1",
+                "function": "Main"
+              },
+              "configurationArguments": {
+                "nodeName": "[parameters('tcvmName')]",
+                "mainScriptUrl": "[concat(parameters('_artifactsLocation'), '/', 'Scripts', '/', parameters('mainScriptUrl'), parameters('_artifactsLocationSasToken'))]",
+                "commonScriptUrl": "[concat(parameters('_artifactsLocation'), '/', 'Scripts', '/', 'Includes', '/', parameters('commonScriptUrl'), parameters('_artifactsLocationSasToken'))]",
+                "iisScriptUrl": "[concat(parameters('_artifactsLocation'), '/', 'Scripts', '/', 'Includes', '/', parameters('iisScriptUrl'), parameters('_artifactsLocationSasToken'))]",
+                "teamCityScriptUrl": "[concat(parameters('_artifactsLocation'), '/', 'Scripts', '/', 'Includes', '/', parameters('TeamCityScriptUrl'), parameters('_artifactsLocationSasToken'))]",
+                "certFileUrl": "[concat(parameters('_artifactsLocation'), '/', 'Scripts', '/', parameters('certFileUrl'), parameters('_artifactsLocationSasToken'))]",
+                "webConfigUrl": "[concat(parameters('_artifactsLocation'), '/', 'Scripts', '/', 'Temps', '/', parameters('webConfigUrl'), parameters('_artifactsLocationSasToken'))]",
+                "serverXmlUrl": "[concat(parameters('_artifactsLocation'), '/', 'Scripts', '/', 'Temps', '/', parameters('serverXmlUrl'), parameters('_artifactsLocationSasToken'))]",
+                "buildPropertiesUrl": "[concat(parameters('_artifactsLocation'), '/', 'Scripts', '/', 'Temps', '/', parameters('buildPropertiesUrl'), parameters('_artifactsLocationSasToken'))]",
+                "wrapperConfUrl": "[concat(parameters('_artifactsLocation'), '/', 'Scripts', '/', 'Temps', '/', parameters('wrapperConfUrl'), parameters('_artifactsLocationSasToken'))]",
+                "logonAsServiceUrl": "[concat(parameters('_artifactsLocation'), '/', 'Scripts', '/', 'Includes', '/', parameters('logonAsServiceUrl'), parameters('_artifactsLocationSasToken'))]",
+                "subinAclMsiUrl": "[concat(parameters('_artifactsLocation'), '/', 'Scripts', '/', 'Temps', '/', parameters('subinAclMsiUrl'), parameters('_artifactsLocationSasToken'))]"
+              }
+            },
+            "protectedSettings": {
+              "configurationUrlSasToken": "[parameters('_artifactsLocationSasToken')]"
+            }
+          }
+        },
+        {
+          "name": "tc-scripts",
+          "type": "extensions",
+          "location": "[resourceGroup().location]",
+          "apiVersion": "2016-03-30",
+          "dependsOn": [
+            "[resourceId('Microsoft.Compute/virtualMachines', parameters('tcvmName'))]",
+            "[concat('Microsoft.Compute/virtualMachines/', parameters('tcvmName'), '/extensions/Microsoft.Powershell.DSC')]",
+            "[concat('Microsoft.Sql/servers/', parameters('sqlServerName'), '/databases/', parameters('tcnewdbName'))]"
+          ],
+          "tags": {
+            "displayName": "tc-scripts"
+          },
+          "properties": {
+            "publisher": "Microsoft.Compute",
+            "type": "CustomScriptExtension",
+            "typeHandlerVersion": "1.7",
+            "autoUpgradeMinorVersion": true,
+            "settings": {
+              "fileUris": [
+                "[variables('tcinstallerUri')]"
+              ],
+              "commandToExecute": "[concat('powershell -ExecutionPolicy Unrestricted -File ', variables('tc-scriptsScriptFolder'), '/', variables('tc-scriptsScriptFileName'), ' -sqlServerName ', reference(parameters('sqlServerName')).fullyQualifiedDomainName, ' -sqlDBName ', parameters('tcnewdbName'), ' -sqlUsername ', parameters('sqlAdminUsername'), ' -sqlPasswd ', parameters('sqlAdminPassword'), ' -vmDnsName ', reference(variables('tcpublicipaddrName')).dnsSettings.fqdn)]"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "[parameters('virtualMachineName')]",
+      "type": "Microsoft.Compute/virtualMachines",
+      "apiVersion": "2017-03-30",
+      "location": "[resourceGroup().location]",
+      "dependsOn": [
+          "[concat('Microsoft.Network/networkInterfaces/', parameters('networkInterfaceName'))]",
+          "[concat('Microsoft.Storage/storageAccounts/', parameters('diagnosticsStorageAccountName'))]"
+      ],
+      "properties": {
+          "osProfile": {
+              "computerName": "[parameters('virtualMachineName')]",
+              "adminUsername": "[parameters('adminUsername')]",
+              "linuxConfiguration": {
+                  "disablePasswordAuthentication": "true",
+                  "ssh": {
+                      "publicKeys": [
+                          {
+                              "path": "[concat('/home/', parameters('adminUsername'), '/.ssh/authorized_keys')]",
+                              "keyData": "[parameters('adminPublicKey')]"
+                          }
+                      ]
+                  }
+              }
+          },
+          "hardwareProfile": {
+              "vmSize": "[parameters('virtualMachineSize')]"
+          },
+          "storageProfile": {
+              "imageReference": {
+                  "publisher": "bitnami",
+                  "offer": "sonarqube",
+                  "sku": "6-4",
+                  "version": "latest"
+              },
+              "osDisk": {
+                  "createOption": "fromImage",
+                  "managedDisk": {
+                      "storageAccountType": "Standard_LRS"
+                  }
+              },
+              "dataDisks": []
+          },
+          "networkProfile": {
+              "networkInterfaces": [
+                  {
+                      "id": "[resourceId('Microsoft.Network/networkInterfaces', parameters('networkInterfaceName'))]"
+                  }
+              ]
+          },
+          "diagnosticsProfile": {
+              "bootDiagnostics": {
+                  "enabled": true,
+                  "storageUri": "[reference(resourceId('Microsoft.Storage/storageAccounts', parameters('diagnosticsStorageAccountName')), '2015-06-15').primaryEndpoints['blob']]"
+              }
+          }
+      },
+      "plan": {
+          "name": "6-4",
+          "publisher": "bitnami",
+          "product": "sonarqube"
+      }
+    },
+    {
+      "apiVersion": "2014-04-01-preview",
+      "type": "Microsoft.Sql/servers",
+      "name": "[parameters('sqlServerName')]",
+      "location": "[resourceGroup().location]",
+      "tags": {
+        "env": "trial",
+        "vendor": "Octopus Deploy"
+      },
+      "properties": {
+        "version": "12.0",
+        "administratorLogin": "[parameters('sqlAdminUsername')]",
+        "administratorLoginPassword": "[parameters('sqlAdminPassword')]"
+      },
+      "resources": [
+        {
+          "apiVersion": "2014-04-01-preview",
+          "type": "databases",
+          "name": "[variables('sqlDbName')]",
+          "location": "[resourceGroup().location]",
+          "tags": {
+            "env": "trial",
+            "vendor": "Octopus Deploy"
+          },
+          "dependsOn": [
+            "[concat('Microsoft.Sql/servers/', parameters('sqlServerName'))]"
+          ],
+          "properties": {
+            "edition": "[variables('sqlDbEdition')]",
+            "collation": "[variables('sqlDbCollation')]",
+            "maxSizeBytes": "[variables('sqlDbMaxSizeBytes')]",
+            "requestedServiceObjectiveId": "[variables('sqldbEditionPerformanceLevel')]"
+          }
+        },
+        {
+          "name": "[parameters('tcnewdbName')]",
+          "type": "databases",
+          "location": "[resourceGroup().location]",
+          "apiVersion": "2014-04-01-preview",
+          "dependsOn": [
+            "[concat('Microsoft.Sql/servers/', parameters('sqlServerName'))]"
+          ],
+          "tags": {
+            "displayName": "tcnewdb"
+          },
+          "properties": {
+            "collation": "[parameters('tcnewdbCollation')]",
+            "edition": "[parameters('tcnewdbEdition')]",
+            "maxSizeBytes": "1073741824",
+            "requestedServiceObjectiveName": "[parameters('tcnewdbRequestedServiceObjectiveName')]"
+          }
+        },
+        {
+          "type": "firewallrules",
+          "apiVersion": "2014-04-01-preview",
+          "dependsOn": [
+            "[concat('Microsoft.Sql/servers/', parameters('sqlServerName'))]"
+          ],
+          "location": "[resourceGroup().location]",
+          "name": "AllowAllWindowsAzureIps",
+          "properties": {
+            "endIpAddress": "0.0.0.0",
+            "startIpAddress": "0.0.0.0"
+          }
+        }
+      ]
+    }
+  ],
+  "outputs": {
+    "octopusServerName": {
+      "type": "string",
+      "value": "[reference(variables('networkPublicIPAddressName')).dnsSettings.fqdn]" 
+    },
+    "teamcityServerName": {
+      "type": "string",
+      "value": "[reference(variables('tcpublicipaddrName')).dnsSettings.fqdn]"
+    },
+    "sqlServerName": {
+      "type": "string",
+      "value": "[reference(concat('Microsoft.Sql/servers/', parameters('sqlServerName'))).fullyQualifiedDomainName]"
+    },
+    "sQubeServerName": {
+      "type": "string",
+      "value": "[reference(parameters('publicIpAddressName')).dnsSettings.fqdn]" 
+    },
+    "adminUsername": {
+      "type": "string",
+      "value": "[parameters('adminUsername')]"
+    }
+  }
+}

@@ -1,0 +1,18 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentParameters.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "networkDnsName": { "value": "octonunpublicdnsadi" },
+    "sqlServerName": { "value": "octonunpublicsqldnsadi" },
+    "licenseFullName": { "value": "Jamal Shahverdiyev" },
+    "licenseOrganisationName": { "value": "OpSO" },
+    "licenseEmailAddress": { "value": "jamal.shahverdiev@gmail.com" },
+    "vmAdminPassword": { "value": "Oc0ppul1@DM!NP@ssw0rd"},
+    "sqlAdminPassword": { "value": "SqL@dm!inp@$$w0rd" },
+    "octopusAdminUsername": { "value": "admin" },
+    "octopusAdminPassword": { "value": "Oxt0P0xp@r0l!" },
+    "scriptUrl": { "value": "octopus-api-token-create.ps1" },
+    "certScriptUrl": { "value": "certconfigureoctohttps.ps1" },
+    "certUrl": { "value": "deploy-digitalcommerce-volvocars-com.pfx" }
+  }
+}
